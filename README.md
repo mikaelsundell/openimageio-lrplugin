@@ -22,6 +22,7 @@ Load the plugin from `Lightroom Plug-in Manager`. The upper section contains inf
 The plugin is a Post-Process Action and can be added to the current Export by selecting `Post-Process width OpenImageIO` and insert. The main functionality of the plugin is to enable export to different formats and aspect ratios.
 
 **General**
+
 `Force sRGB`  Forces sRGB output for all converts
 
 
