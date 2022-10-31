@@ -15,7 +15,7 @@ The openimageio.lrplugin is essentially a post-process plugin that runs oiiotool
 
 **Plugin information**
 
-Load the plugin from `Lightroom Plug-in Manager`. The upper section contains information about where OIIO tool is installed and where to find log path. Log files are written during export if the `Write log` is checked.
+Load the plugin from `Lightroom Plug-in Manager`. The upper section contains information about where oiio tool is installed and where to find log path. Log files are written during export if the `Write log` is checked.
 
 **Post-processing with OpenImageIO**
 
