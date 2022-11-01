@@ -364,14 +364,17 @@ function OpenImageIOFilterProvider.postProcessRenderedPhotos(functionContext, fi
 
 	LogInfo("Starting post process rendering")
 	local propertyTable = filterContext.propertyTable
-	local hello = 5
-	local width = 0
-	local height = 0
 
 	local renditionOptions = {
 		filterSettings = function( renditionToSatisfy, exportSettings )
 			-- log export settings
 			LogExportSettings( exportSettings )
+			
+			-- force srgb
+			if propertyTable.force_srgb then
+				LR_export_colorSpace = "sRGB"
+			end
+		
 		end,
 	}
 
