@@ -28,9 +28,13 @@ The plugin is a Post-Process Action and can be added to the current Export by se
 **Formats**
 
 `Turn on`       Turn on use of formats
+
 `4K`            Use 4K resolution for aspect ratio
+
 `Scale`         Scale or zoom for image in aspect ratio
+
 `Aspect ratio`  Format aspect ratio
+
 `Background`    Background fill color
 
 
