@@ -49,6 +49,16 @@ The openimageio-lrplugin project uses oiiotool for image processing, copy oiioto
 
 The `macdeploy.sh` script will copy and change all dependencies to use @executable as install names.
 
+
+Create a new package
+
+```shell
+> mkdir openimageio-lrplugin_macOS12-<version>
+> cp -R openimageio.lrplugin openimageio-lrplugin_macOS12-<version>
+> cp README.md LICENSE openimageio-lrplugin_macOS12-<version>
+> tar -czf openimageio-lrplugin_macOS12-<version>.tar.gz openimageio-lrplugin_macOS12-<version>
+```
+
 Web Resources
 -------------
 
