@@ -46,6 +46,15 @@ function PluginUtils.open_app( arguments, app )
     LrShell.openFilesInApp( arguments, app )
 end
 
+-- string
+function PluginUtils.string_to_number( number )
+    if number >= 0 then
+        return string.format("+%d", number)
+    else
+        return number
+    end
+end
+
 -- tables
 function PluginUtils.color_to_table( color )
     return { red = color:red(), green = color:green(), blue = color:blue(), alpha = color:alpha() }

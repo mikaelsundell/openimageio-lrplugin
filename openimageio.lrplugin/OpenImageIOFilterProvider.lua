@@ -426,8 +426,8 @@ function OpenImageIOFilterProvider.postProcessRenderedPhotos(functionContext, fi
 				" \"" .. sourceRendition.destinationPath .. "\"" ..
 				" --pattern constant:color=" .. color.red .. "," .. color.green .. "," .. color.blue .. "," .. color.alpha .. " " ..
 				"\"{" .. width .. "}x{" .. height .. "}\" \"{TOP.nchannels}\" " ..
-				"--swap --resize \"{" .. math.ceil(resize_width) .."}x{" .. math.ceil(resize_height) .. "}\" " ..
-				"--swap --paste \"+".. math.ceil(transform.x) .."+".. math.ceil(transform.y) .."\"" ..
+				"--swap --resize \"{" .. PluginUtils.string_to_number(math.ceil(resize_width)) .."}x{" .. PluginUtils.string_to_number(math.ceil(resize_height)) .. "}\" " ..
+				"--swap --paste \"" .. PluginUtils.string_to_number(math.ceil(transform.x)) .. "" .. PluginUtils.string_to_number(math.ceil(transform.y)) .."\"" ..
 				" -o \"" .. sourceRendition.destinationPath .. "\""
 
 			LogInfo("Command: " .. command)
