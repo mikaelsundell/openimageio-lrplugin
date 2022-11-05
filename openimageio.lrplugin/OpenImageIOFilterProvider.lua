@@ -361,92 +361,92 @@ function OpenImageIOFilterProvider.sectionForFilterInDialog( viewFactory, proper
 end
 
 function OpenImageIOFilterProvider.postProcessRenderedPhotos(functionContext, filterContext )
-
-	LogInfo("Starting post process rendering")
 	local propertyTable = filterContext.propertyTable
 
 	local renditionOptions = {
 		filterSettings = function( renditionToSatisfy, exportSettings )
-			-- log export settings
-			LogExportSettings( exportSettings )
-			
 			-- force srgb
 			if propertyTable.force_srgb then
+				-- log export settings
+				LogExportSettings( exportSettings )
+
 				LR_export_colorSpace = "sRGB"
 			end
 		
 		end,
 	}
 
-	-- filterContext.propertyTable -- to access export table
 	for sourceRendition, renditionToSatisfy in filterContext:renditions( renditionOptions ) do
 
-		-- Wait for the upstream task to finish its work on this photo. 
+		-- wait for the upstream task to finish its work on this photo. 
 		local success, pathOrMessage = sourceRendition:waitForRender()
-		if success then 
 
-			-- output
-			LogInfo("Post process photo")
+		-- post processing
+		if propertyTable.turn_on_formats then
 
-			local photo = sourceRendition.photo
-			if photo:getRawMetadata( "isCropped" ) then
-				dimensions = photo:getRawMetadata( "croppedDimensions" )
+			if success then 
+				LogInfo("Post processing photo")
+
+				local photo = sourceRendition.photo
+				if photo:getRawMetadata( "isCropped" ) then
+					dimensions = photo:getRawMetadata( "croppedDimensions" )
+				else
+					dimensions = photo:getRawMetadata( "dimensions" )
+				end
+
+				-- aspect ratio
+				width = propertyTable.aspect_ratio_width
+				height = propertyTable.aspect_ratio_height
+				
+				-- photo
+				photo_width = dimensions.width
+				photo_height = dimensions.height
+				relative_scale = 0
+				
+				if photo_width > photo_height then
+					relative_scale = width / photo_width
+				else
+					relative_scale = height / photo_height
+				end
+				scale = propertyTable.scale / 100
+				
+				-- resize
+				resize_width = scale * photo_width * relative_scale
+				resize_height = scale * photo_height * relative_scale
+				
+				--  transform			
+				transform = PluginUtils.transform_format( 
+					{ width = width, height = height }, 
+					{ width = resize_width, height = resize_height } )
+				
+				-- oiio tool
+				color = propertyTable.background
+				command = PluginPrefs.oiiotool_path ..  
+					" \"" .. sourceRendition.destinationPath .. "\"" ..
+					" --pattern constant:color=" .. color.red .. "," .. color.green .. "," .. color.blue .. "," .. color.alpha .. " " ..
+					"\"{" .. width .. "}x{" .. height .. "}\" \"{TOP.nchannels}\" " ..
+					"--swap --resize \"{" .. PluginUtils.string_to_number(math.ceil(resize_width)) .."}x{" .. PluginUtils.string_to_number(math.ceil(resize_height)) .. "}\" " ..
+					"--swap --paste \"" .. PluginUtils.string_to_number(math.ceil(transform.x)) .. "" .. PluginUtils.string_to_number(math.ceil(transform.y)) .."\"" ..
+					" -o \"" .. sourceRendition.destinationPath .. "\""
+
+				LogInfo("Command: " .. command)
+
+				-- execute
+				if LrTasks.execute( command ) ~= 0 then
+					LogInfo("Failed when trying to execute command, see log.")
+
+					renditionToSatisfy:renditionIsDone( false, "Failed when trying to execute command, see log" )
+				end
+
+				LogInfo("Post processing finished")
+
+
 			else
-				dimensions = photo:getRawMetadata( "dimensions" )
+				LogInfo("Post processing failed")
+			
 			end
-
-			-- aspect ratio
-			width = propertyTable.aspect_ratio_width
-			height = propertyTable.aspect_ratio_height
-			
-			-- photo
-			photo_width = dimensions.width
-			photo_height = dimensions.height
-			relative_scale = 0
-			
-			if photo_width > photo_height then
-				relative_scale = width / photo_width
-			else
-				relative_scale = height / photo_height
-			end
-			scale = propertyTable.scale / 100
-			
-			-- resize
-			resize_width = scale * photo_width * relative_scale
-			resize_height = scale * photo_height * relative_scale
-			
-			--  transform			
-			transform = PluginUtils.transform_format( 
-				{ width = width, height = height }, 
-				{ width = resize_width, height = resize_height } )
-			
-			-- oiio tool
-			color = propertyTable.background
-			command = PluginPrefs.oiiotool_path ..  
-				" \"" .. sourceRendition.destinationPath .. "\"" ..
-				" --pattern constant:color=" .. color.red .. "," .. color.green .. "," .. color.blue .. "," .. color.alpha .. " " ..
-				"\"{" .. width .. "}x{" .. height .. "}\" \"{TOP.nchannels}\" " ..
-				"--swap --resize \"{" .. PluginUtils.string_to_number(math.ceil(resize_width)) .."}x{" .. PluginUtils.string_to_number(math.ceil(resize_height)) .. "}\" " ..
-				"--swap --paste \"" .. PluginUtils.string_to_number(math.ceil(transform.x)) .. "" .. PluginUtils.string_to_number(math.ceil(transform.y)) .."\"" ..
-				" -o \"" .. sourceRendition.destinationPath .. "\""
-
-			LogInfo("Command: " .. command)
-
-			-- execute
-			if LrTasks.execute( command ) ~= 0 then
-				LogInfo("Failed when trying to execute command, see log.")
-
-				renditionToSatisfy:renditionIsDone( false, "Failed when trying to execute command, see log" )
-			end
-
-		else
-			LogInfo("Photo rendering failed")
-		
 		end
 	end
-
-	LogInfo("Post processing finished")
-
 end
 
 return OpenImageIOFilterProvider
