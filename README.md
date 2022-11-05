@@ -54,9 +54,9 @@ Create a new package
 
 ```shell
 > mkdir openimageio-lrplugin_macOS12-<version>
-> cp -R openimageio.lrplugin openimageio-lrplugin_macOS12-<version>
-> cp README.md LICENSE openimageio-lrplugin_macOS12-<version>
-> tar -czf openimageio-lrplugin_macOS12-<version>.tar.gz openimageio-lrplugin_macOS12-<version>
+> cp -R openimageio.lrplugin openimageio-lrplugin_macOS12_amd64-<version>
+> cp README.md LICENSE openimageio-lrplugin_macOS12_amd64-<version>
+> tar -czf openimageio-lrplugin_macOS12-<version>.tar.gz openimageio-lrplugin_macOS12_amd64-<version>
 ```
 
 Web Resources
