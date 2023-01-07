@@ -71,4 +71,5 @@ Use: Press Option + Shift during start-up to reset Lightroom preferences.
 Web Resources
 -------------
 
-GitHub page:        http://github.com/mikaelsundell/openimageio-lrplugin
+GitHub page:        https://github.com/mikaelsundell/openimageio-lrplugin
+Issues              https://github.com/mikaelsundell/openimageio-lrplugin/issues
