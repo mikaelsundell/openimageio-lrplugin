@@ -145,7 +145,7 @@ end
 
 -- background
 -- note: may seem overambitious but needed if rendering is done 
--- first-time with default values.
+-- during first invocation using default values.
 function OpenImageIOFilterProvider.getBackground( propertyTable )
 	if (propertyTable.background["red"] and propertyTable.background["green"] and
 		propertyTable.background["blue"] and propertyTable.background["alpha"] ) then
