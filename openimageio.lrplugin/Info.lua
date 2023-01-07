@@ -2,7 +2,7 @@
 --  PluginInfoProvider.lua
 --  openimageio.lrplugin
 --
---  Copyright (c) 2022 - present Mikael Sundell.
+--  Copyright (c) 2023 - present Mikael Sundell.
 --  All Rights Reserved.
 --
 --  openimageio.lrplugin is a lightroom plugin to post-process Lightroom exports

@@ -2,17 +2,15 @@
 --  OpenImageIOFilterProvider.lua
 --  openimageio.lrplugin
 --
---  Copyright (c) 2022 - present Mikael Sundell.
+--  Copyright (c) 2023 - present Mikael Sundell.
 --  All Rights Reserved.
 --
 --  openimageio.lrplugin is a lightroom plugin to post-process Lightroom exports
 --  using openimageio image processing tools.
 
-require "PluginPrefs"
-require "PluginLog"
+require "PluginConfig"
 
 -- imports
-local LrColor = import "LrColor"
 local LrLogger = import 'LrLogger'
 local LrView = import "LrView"
 local LrTasks = import "LrTasks"
@@ -22,12 +20,9 @@ local LrFunctionContext = import "LrFunctionContext"
 -- Common shortcuts
 local bind = LrView.bind
 
--- plugin prefs
+-- plugin config
 -- use { default = true } to default prefs
-PluginPrefs_init()
-
--- plugin log
-PluginLog_init()
+PluginConfig_init()
 
 -- 
 --  OpenImageIOFilterProvider.lua
@@ -37,7 +32,8 @@ PluginLog_init()
 local OpenImageIOFilterProvider = {}
 
 -- export fields
--- note: the export preset fields are stored after 'Export'
+-- note: the export preset fields are stored after 'Export',
+-- default values are used only on the first invocation.
 OpenImageIOFilterProvider.exportPresetFields = {
 	-- general
 	{ key = 'force_srgb', default = false },
@@ -147,6 +143,18 @@ function OpenImageIOFilterProvider.updateUserDataFields( propertyTable, key, val
 	end
 end
 
+-- background
+-- note: may seem overambitious but needed if rendering is done 
+-- first-time with default values.
+function OpenImageIOFilterProvider.getBackground( propertyTable )
+	if (propertyTable.background["red"] and propertyTable.background["green"] and
+		propertyTable.background["blue"] and propertyTable.background["alpha"] ) then
+		return propertyTable.background
+	else
+		return PluginUtils.color_to_table(exportUserDataFields.background)
+	end
+end
+
 -- 
 -- aspect ratio fields
 -- note: popup_menu bind to value of pair for aspect ratio fields,
@@ -200,7 +208,16 @@ function OpenImageIOFilterProvider.startDialog( propertyTable )
 	LrFunctionContext.callWithContext("startDialog", function( context ) 
 		exportUserDataFields = LrBinding.makePropertyTable( context )
 	end)
-	exportUserDataFields.background = PluginUtils.table_to_color(propertyTable.background)
+	-- export user data fields
+	-- note: background contains default values from exportPresetFields
+	-- during first invocation. Fill in values from property table if
+	-- exists else initialise to default color
+	if (propertyTable.background["red"] and propertyTable.background["green"] and
+		propertyTable.background["blue"] and propertyTable.background["alpha"] ) then
+		exportUserDataFields.background = PluginUtils.table_to_color(propertyTable.background)
+	else
+		exportUserDataFields.background = PluginUtils.rgba_to_color(0, 0, 0, 1)
+	end
 	exportUserDataFields.table = propertyTable
 	-- observers
 	propertyTable:addObserver('four_k', OpenImageIOFilterProvider.updateExportPresetFields)
@@ -208,7 +225,6 @@ function OpenImageIOFilterProvider.startDialog( propertyTable )
 	propertyTable:addObserver('aspect_ratio_width', OpenImageIOFilterProvider.updateExportPresetFields)
 	propertyTable:addObserver('aspect_ratio_height', OpenImageIOFilterProvider.updateExportPresetFields)
 	exportUserDataFields:addObserver('background', OpenImageIOFilterProvider.updateUserDataFields)
-	
 end
 
 -- action dialog
@@ -371,13 +387,11 @@ function OpenImageIOFilterProvider.postProcessRenderedPhotos(functionContext, fi
 				LogExportSettings( exportSettings )
 
 				LR_export_colorSpace = "sRGB"
-			end
-		
+			end		
 		end,
 	}
 
 	for sourceRendition, renditionToSatisfy in filterContext:renditions( renditionOptions ) do
-
 		-- wait for the upstream task to finish its work on this photo. 
 		local success, pathOrMessage = sourceRendition:waitForRender()
 
@@ -398,6 +412,8 @@ function OpenImageIOFilterProvider.postProcessRenderedPhotos(functionContext, fi
 				width = propertyTable.aspect_ratio_width
 				height = propertyTable.aspect_ratio_height
 				
+				LogInfo("width: " .. width)
+
 				-- photo
 				photo_width = dimensions.width
 				photo_height = dimensions.height
@@ -413,15 +429,15 @@ function OpenImageIOFilterProvider.postProcessRenderedPhotos(functionContext, fi
 				-- resize
 				resize_width = scale * photo_width * relative_scale
 				resize_height = scale * photo_height * relative_scale
-				
+
 				--  transform			
 				transform = PluginUtils.transform_format( 
 					{ width = width, height = height }, 
 					{ width = resize_width, height = resize_height } )
-				
+
 				-- oiio tool
-				color = propertyTable.background
-				command = PluginPrefs.oiiotool_path ..  
+				color = OpenImageIOFilterProvider.getBackground( propertyTable )
+				command = PluginConfig.oiiotool_path ..  
 					" \"" .. sourceRendition.destinationPath .. "\"" ..
 					" --pattern constant:color=" .. color.red .. "," .. color.green .. "," .. color.blue .. "," .. color.alpha .. " " ..
 					"\"{" .. width .. "}x{" .. height .. "}\" \"{TOP.nchannels}\" " ..
@@ -437,9 +453,7 @@ function OpenImageIOFilterProvider.postProcessRenderedPhotos(functionContext, fi
 
 					renditionToSatisfy:renditionIsDone( false, "Failed when trying to execute command, see log" )
 				end
-
 				LogInfo("Post processing finished")
-
 
 			else
 				LogInfo("Post processing failed")

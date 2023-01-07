@@ -2,7 +2,7 @@
 --  PluginInit.lua
 --  openimageio.lrplugin
 --
---  Copyright (c) 2022 - present Mikael Sundell.
+--  Copyright (c) 2023 - present Mikael Sundell.
 --  All Rights Reserved.
 --
 --  openimageio.lrplugin is a lightroom plugin to post-process Lightroom exports
@@ -10,7 +10,8 @@
 
 -- imports
 local LrPathUtils = import 'LrPathUtils'
-local LrColor = import "LrColor"
+local LrFileUtils = import 'LrFileUtils'
+local LrColor = import 'LrColor'
 local LrShell = import "LrShell"
 local LrTasks = import "LrTasks"
 
@@ -31,6 +32,10 @@ end
 -- paths
 function PluginUtils.get_home()
     return LrPathUtils.getStandardFilePath( "home" )
+end
+
+function PluginUtils.file_exists( file )
+    return LrFileUtils.exists( file )
 end
 
 -- system
@@ -62,6 +67,10 @@ end
 
 function PluginUtils.table_to_color( table )
     return LrColor(table.red, table.green, table.blue, table.alpha)
+end
+
+function PluginUtils.rgba_to_color( red, green, blue, alpha )
+    return LrColor(red, green, blue, alpha)
 end
 
 -- math

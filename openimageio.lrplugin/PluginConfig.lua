@@ -1,66 +1,84 @@
 --
---  PluginInit.lua
+--  PluginConfig.lua
 --  openimageio.lrplugin
 --
---  Copyright (c) 2022 - present Mikael Sundell.
+--  Copyright (c) 2023 - present Mikael Sundell.
 --  All Rights Reserved.
 --
 --  openimageio.lrplugin is a lightroom plugin to post-process Lightroom exports
 --  using openimageio image processing tools.
 
 -- requires
-require "PluginPrefs"
 require "PluginUtils"
 
--- imports
+local LrPrefs = import 'LrPrefs'
+local LrColor = import 'LrColor'
 local LrLogger = import 'LrLogger'
+local plugin = _PLUGIN
 
 -- 
---  PluginLog.lua
+--  PluginConfig.lua
 -- 
 
-PluginLog = {
-    log = nil,
+PluginConfig = {
+    oiiotool_path = "",
     log_name = 'OpenImageIOLog',
+    log = nil,
     log_path = nil,
     init = false
 }
 
--- init log
-function PluginLog_init()   
-    if ( not PluginLog.init ) then
-        PluginLog.log = LrLogger( PluginLog.log_name )
-        -- print to log file
-        PluginLog.log:enable( 'logfile' )
-        -- note: we need full system path, not just ~/ for utils
-        PluginLog.log_path = PluginUtils.get_home() .. "/Documents/LrClassicLogs/" .. PluginLog.log_name .. ".log"
-        PluginLog.init = true
+PluginPrefs = {
+    log_write = false,
+    init = false
+}
 
+-- init config
+function PluginConfig_init( default )
+    -- prefs
+    -- note: one-time call, saved between sessions
+    PluginPrefs = LrPrefs.prefsForPlugin()
+    if ( not PluginPrefs.init or default ) then
+        PluginPrefs.log_write = false
+        PluginPrefs.init = true
+    end
+    -- oiio path
+    -- note: may have been updated, based on plugin
+    PluginConfig.oiiotool_path = plugin:resourceId("oiiotool/oiiotool")
+    default = default or false
+    if ( not PluginConfig.init or default ) then
+        -- log path
+        PluginConfig.log = LrLogger( PluginConfig.log_name )
+        -- print to log file
+        PluginConfig.log:enable( 'logfile' )
+        -- note: we need full system path, not just ~/ for utils
+        PluginConfig.log_path = PluginUtils.get_home() .. "/Documents/LrClassicLogs/" .. PluginConfig.log_name .. ".log"
+        PluginConfig.init = true
     end
 end
 
 -- messages
 function LogInfo( message )
-    if PluginPrefs.write_log then
-        PluginLog.log:trace( "[info]: " .. message )
+    if PluginPrefs.log_write then
+        PluginConfig.log:trace( "[info]: " .. message )
     end
 end
 
 function LogWarning( message )
-    if PluginPrefs.write_log then
-        PluginLog.log:trace( "[warning]: " .. message )
+    if PluginPrefs.log_write then
+        PluginConfig.log:trace( "[warning]: " .. message )
     end
 end
 
 function LogDebug( message )
-    if PluginPrefs.write_log then
-        PluginLog.log:trace( "[debug]: " .. message )
+    if PluginPrefs.log_write then
+        PluginConfig.log:trace( "[debug]: " .. message )
     end
 end
 
 function LogError( message )
-    if PluginPrefs.write_log then
-        PluginLog.log:trace( "[error]: " .. message )
+    if PluginPrefs.log_write then
+        PluginConfig.log:trace( "[error]: " .. message )
     end
 end
 

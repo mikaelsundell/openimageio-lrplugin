@@ -2,30 +2,27 @@
 --  PluginInfoProvider.lua
 --  openimageio.lrplugin
 --
---  Copyright (c) 2022 - present Mikael Sundell.
+--  Copyright (c) 2023 - present Mikael Sundell.
 --  All Rights Reserved.
 --
 --  openimageio.lrplugin is a lightroom plugin to post-process Lightroom exports
 --  using openimageio image processing tools.
 
 -- requires
-require "PluginPrefs"
-require "PluginLog"
+require "PluginConfig"
 require "PluginUtils"
 
 -- imports
 local LrColor = import "LrColor"
 local LrView = import "LrView"
+local LrDialogs = import 'LrDialogs'
 
 local bind = LrView.bind
 local plugin = _PLUGIN
 
--- plugin prefs
+-- plugin config
 -- use { default = true } to default prefs
-PluginPrefs_init()
-
--- plugin log
-PluginLog_init()
+PluginConfig_init()
 
 -- 
 --  OpenImageIOPluginInfoProvider.lua
@@ -35,19 +32,23 @@ local OpenImageIOPluginInfoProvider = {}
 
 -- actions
 function OpenImageIO_open_oiiopath()
-	PluginUtils.open_shell( PluginPrefs.oiiotool_path )
+	PluginUtils.open_shell( PluginConfig.oiiotool_path )
 end
 
 function OpenImageIO_copy_oiiopath()
-	PluginUtils.execute( "echo '" .. PluginPrefs.oiiotool_path .. "' | pbcopy" )
+	PluginUtils.execute( "echo '" .. PluginConfig.oiiotool_path .. "' | pbcopy" )
 end
 
 function OpenImageIO_open_log()
-	PluginUtils.open_app( { PluginLog.log_path }, "/System/Applications/TextEdit.app" )
+	if ( PluginUtils.file_exists( PluginConfig.log_path ) ) then
+		PluginUtils.open_app( { PluginConfig.log_path }, "/System/Applications/TextEdit.app" )
+	else
+		LrDialogs.message("OpenImageIO", "Could not open log path, enable 'Write log' and run export to create log file.")
+	end
 end
 
 function OpenImageIO_copy_log()
-	PluginUtils.execute( "echo '" .. PluginLog.log_path .. "' | pbcopy" )
+	PluginUtils.execute( "echo '" .. PluginConfig.log_path .. "' | pbcopy" )
 end
 
 -- dialog
@@ -71,7 +72,7 @@ function OpenImageIOPluginInfoProvider.sectionsForTopOfDialog( viewFactory, prop
 						width_in_chars = 5
 					}),
 					viewFactory:static_text({
-						title = PluginPrefs.oiiotool_path,
+						title = PluginConfig.oiiotool_path,
 						width_in_chars = 45,
 						size = "mini"
 					}),
@@ -95,7 +96,7 @@ function OpenImageIOPluginInfoProvider.sectionsForTopOfDialog( viewFactory, prop
 						width_in_chars = 5
 					}),
 					viewFactory:static_text({
-						title = PluginLog.log_path,
+						title = PluginConfig.log_path,
 						width_in_chars = 45,
 						size = "mini"				
 					}),
@@ -119,7 +120,7 @@ function OpenImageIOPluginInfoProvider.sectionsForTopOfDialog( viewFactory, prop
 						width_in_chars = 5
 					}),
 					viewFactory:checkbox({
-						value = bind { key = "write_log", bind_to_object = PluginPrefs }
+						value = bind { key = "log_write", bind_to_object = PluginPrefs }
 					}),
 				}),
 
@@ -148,7 +149,7 @@ function OpenImageIOPluginInfoProvider.sectionsForBottomOfDialog( viewFactory, p
 					},
 				},
 			},
-		}
+	} 
 end
 
 return OpenImageIOPluginInfoProvider
