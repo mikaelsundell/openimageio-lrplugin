@@ -65,7 +65,7 @@ Lightroom
 The openimageio-lrplugin is a set of lua scripts bundled with openimageio oiiotool. It is recommended to 
 reset preferences from time to time to make sure fresh install runs as expected.
 
-Use: Option + Shift during start-up to reset Lightroom preferences.
+Use: Press Option + Shift during start-up to reset Lightroom preferences.
 
 
 Web Resources
